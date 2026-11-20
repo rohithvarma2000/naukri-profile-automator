@@ -1,0 +1,41 @@
+#!/bin/bash
+# Convenient CLI tool for Naukri Automation
+
+PLIST="$HOME/Library/LaunchAgents/com.anuragh.naukri-automation.plist"
+SCRIPT="$HOME/.local/bin/naukri_browse.py"
+LOG="$HOME/Library/Logs/naukri-automation/automation.log"
+
+case "$1" in
+    test|run)
+        echo "Executing immediate test run (60 seconds)..."
+        "$SCRIPT" --force
+        ;;
+    status)
+        "$SCRIPT" --status
+        echo ""
+        echo "LaunchAgent Status:"
+        launchctl list | grep "com.anuragh.naukri-automation" || echo "Not loaded in launchctl."
+        ;;
+    logs|log)
+        echo "Showing recent logs from $LOG:"
+        tail -n 25 "$LOG" 2>/dev/null || echo "No logs found yet."
+        ;;
+    disable|pause|stop)
+        launchctl unload "$PLIST" 2>/dev/null
+        echo "Naukri automation has been paused/disabled."
+        ;;
+    enable|resume|start)
+        launchctl load "$PLIST" 2>/dev/null
+        echo "Naukri automation has been enabled/resumed."
+        ;;
+    *)
+        echo "Usage: naukri-automation {status|test|logs|enable|disable}"
+        echo ""
+        echo "Commands:"
+        echo "  status   - View current schedule, active window, and launchd status"
+        echo "  test     - Run a test session immediately (ignores schedule)"
+        echo "  logs     - Show recent automation activity logs"
+        echo "  disable  - Pause/stop the scheduled background task"
+        echo "  enable   - Resume the scheduled background task"
+        ;;
+esac
